@@ -22,6 +22,8 @@ int main(int argc, char *argv[]) {
 
     all_words_rec(input2,3,0);
 
+    printf("%d\n", hamming_dist("abcd", "aec"));
+
     free(input2);
     return 0;
 }
