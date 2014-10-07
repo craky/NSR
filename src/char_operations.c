@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <string.h>
 
 /******************************************************************************/
 /* increment_character is used to change x th character.                      */
@@ -25,26 +26,10 @@ void increment_character(char input[], int char_size, int char_order) {
 /* generate_char = is consisted of 'a'                                        */
 /******************************************************************************/
 char * generate_string(int size){
-    char * new_string = (char *) malloc(size);
-    int i = 0;
-
-    for(i = 0; i < size; i++){
-        new_string[i] = 'a';
-    }
-
+    char * new_string = (char *) malloc(size + 1);
+    memset(new_string, 'a', size);
+    new_string[size] = 0;
     return new_string;
-}
-/******************************************************************************/
-/* print char of size = size to an output                                     */
-/******************************************************************************/
-void print_string(const char input[], int size){
-    int i = 0;
-
-    for(i = 0; i < size; i++){
-        printf("%c", input[i]);
-    }
-
-    printf("\n");
 }
 /******************************************************************************/
 /* all_words_rec - write to an output all words with size = size;             */
@@ -59,10 +44,9 @@ void all_words_rec(char input[], int input_length, int idx){
 
    while (nchars--) {
       if (idx == input_length - 1)
-         print_string(input, input_length);
+         printf("%s\n", input);
       all_words_rec(input, input_length, idx + 1);
       input[idx]++;
    }
 }
-
 
