@@ -5,24 +5,6 @@
 #include <string.h>
 
 /******************************************************************************/
-/* increment_character is used to change x th character.                      */
-/* Returns char * which have hamming_distance(input, output) = 1              */
-
-/******************************************************************************/
-void increment_character(char input[], int char_size, int char_order) {
-
-    if (char_size <= char_order) {
-        printf("Increment_character error.\r\n");
-        return;
-    }
-
-    input[char_order]++;
-
-    if (input[char_order] == 'z') {
-        input[char_order] = 'a';
-    }
-}
-/******************************************************************************/
 /* generate_char = is consisted of 'a'                                        */
 /******************************************************************************/
 char * generate_string(int size){
