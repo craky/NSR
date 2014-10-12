@@ -13,7 +13,7 @@
 
 #define TESTING_INPUT_SIZE 10                   /* n >= 10 */
 #define TESTING_MINIMAL_STRING_SIZE             /* minimal is log(n) */
-
+#define MAX_DIST 999
 /*
 int main(int argc, char *argv[]) {
     int result;
@@ -36,6 +36,7 @@ int main(int argc, char **argv)
 {
    FILE *input;
    nsr_strings_t *strings;
+   char * compareString = generate_string(3);
    strings = (nsr_strings_t *) malloc(sizeof(nsr_strings_t));
    if (argc != 2)
    {
@@ -47,6 +48,13 @@ int main(int argc, char **argv)
 
    nsr_read_strings(input, strings);
    nsr_strings_print(strings);
+   /*******/
+   /* Odtud si Vojtik hral */
+   printf("Hamm.Dist. %s and %s is %d\n",compareString,strings->_strings[0],
+           hamming_dist(compareString,strings->_strings[0]));
+   all_words_rec(compareString,strings,3,0,MAX_DIST);
+   /*Dal si uz Vojtik nehral */
+   /******/
    nsr_strings_destroy(strings);
    free(strings);
 
