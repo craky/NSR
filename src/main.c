@@ -11,8 +11,7 @@
 #include "nsr_string.h"
 #include "nsr_io.h"
 
-#define TESTING_INPUT_SIZE 10                   /* n >= 10 */
-#define TESTING_MINIMAL_STRING_SIZE             /* minimal is log(n) */
+#define TESTING_RESULT_SIZE 3
 #define MAX_DIST 999
 /*
 int main(int argc, char *argv[]) {
@@ -36,8 +35,11 @@ int main(int argc, char **argv)
 {
    FILE *input;
    nsr_strings_t *strings;
-   char * compareString = generate_string(3);
+   nsr_result_t *result;
+   int i = 0;
+   char * compareString = generate_string(TESTING_RESULT_SIZE);
    strings = (nsr_strings_t *) malloc(sizeof(nsr_strings_t));
+   result = (nsr_result_t *) malloc(sizeof(nsr_result_t));
    if (argc != 2)
    {
       fprintf(stderr, "usage: %s input_file\n", argv[0]);
@@ -47,16 +49,26 @@ int main(int argc, char **argv)
    input = fopen(argv[1], "r");
 
    nsr_read_strings(input, strings);
+   result->_count = strings->_count;
+   result->_total_distance = MAX_DIST;
+   result->_partial_distances = (int*) malloc(result->_count*sizeof(int));
+   result->_string = (char*) malloc(TESTING_RESULT_SIZE*sizeof(char)+1);
    nsr_strings_print(strings);
-   /*******/
-   /* Odtud si Vojtik hral */
-   printf("Hamm.Dist. %s and %s is %d\n",compareString,strings->_strings[0],
-           hamming_dist(compareString,strings->_strings[0]));
-   all_words_rec(compareString,strings,3,0,MAX_DIST);
-   /*Dal si uz Vojtik nehral */
-   /******/
+
+   all_words_rec(compareString,strings,TESTING_RESULT_SIZE,0,MAX_DIST,result);
+   printf("Result string is \'%s\' with total distance %d.\n",result->_string,
+           result->_total_distance);
+   for(i = 0; i < strings->_count; i++)
+   {
+       printf(" hamming_dist(%s,%s) = %d\n",strings->_strings[i],
+               result->_string,result->_partial_distances[i]);
+   }
+
    nsr_strings_destroy(strings);
    free(strings);
+   free(result->_partial_distances);
+   free(result->_string);
+   free(result);
 
    fclose(input);
 

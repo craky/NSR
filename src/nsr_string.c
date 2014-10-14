@@ -10,4 +10,3 @@ void nsr_strings_destroy(nsr_strings_t *strings)
       free(strings->_strings[i]);
    free(strings->_strings);
 }
-
