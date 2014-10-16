@@ -41,6 +41,8 @@ int nsr_read_strings(FILE *input, nsr_strings_t *strings)
       }
    }
 
+   strings->_min_string_length = nsr_strings_min_length(strings);
+
    return 1;
 }
 

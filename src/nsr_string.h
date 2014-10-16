@@ -5,6 +5,7 @@ typedef struct nsr_strings
 {
    unsigned _count;
    unsigned _max_string_length;
+   unsigned _min_string_length;
    char **_strings;
 } nsr_strings_t;
 
@@ -17,5 +18,7 @@ typedef struct nsr_result
 } nsr_result_t;
 
 void nsr_strings_destroy(nsr_strings_t *strings);
+int nsr_strings_min_length(const nsr_strings_t *strings);
+void nsr_result_init(nsr_result_t *result, const nsr_strings_t *strings);
 
 #endif /* __NSR_STRING_H__ */

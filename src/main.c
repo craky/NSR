@@ -8,11 +8,11 @@
 #include <tgmath.h>
 #include <stdlib.h>
 #include <limits.h>
+
 #include "char_operations.h"
 #include "nsr_string.h"
 #include "nsr_io.h"
 
-#define TESTING_RESULT_SIZE 3
 /*
 int main(int argc, char *argv[]) {
     int result;
@@ -37,7 +37,6 @@ int main(int argc, char **argv)
    nsr_strings_t *strings;
    nsr_result_t *result;
    int i = 0;
-   char * compareString = generate_string(TESTING_RESULT_SIZE);
    strings = (nsr_strings_t *) malloc(sizeof(nsr_strings_t));
    result = (nsr_result_t *) malloc(sizeof(nsr_result_t));
    if (argc != 2)
@@ -49,13 +48,11 @@ int main(int argc, char **argv)
    input = fopen(argv[1], "r");
 
    nsr_read_strings(input, strings);
-   result->_distances_count = strings->_count;
-   result->_total_distance = INT_MAX;
-   result->_distances = (int*) malloc(result->_distances_count*sizeof(int));
-   result->_string = (char*) malloc(TESTING_RESULT_SIZE*sizeof(char)+1);
+   char * compareString = generate_string(strings->_min_string_length);
+   nsr_result_init(result, strings);
    nsr_strings_print(strings);
 
-   all_words_rec(compareString,strings,TESTING_RESULT_SIZE,0,INT_MAX,result);
+   all_words_rec(compareString,strings,strings->_min_string_length,0,INT_MAX,result);
    printf("Result string is \'%s\' with total distance %d.\n",result->_string,
            result->_total_distance);
    for(i = 0; i < strings->_count; i++)
