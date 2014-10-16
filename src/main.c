@@ -51,7 +51,7 @@ int main(int argc, char **argv)
    nsr_read_strings(input, strings);
    result->_count = strings->_count;
    result->_total_distance = MAX_DIST;
-   result->_partial_distances = (int*) malloc(result->_count*sizeof(int));
+   result->_distances = (int*) malloc(result->_count*sizeof(int));
    result->_string = (char*) malloc(TESTING_RESULT_SIZE*sizeof(char)+1);
    nsr_strings_print(strings);
 
@@ -61,12 +61,12 @@ int main(int argc, char **argv)
    for(i = 0; i < strings->_count; i++)
    {
        printf(" hamming_dist(%s,%s) = %d\n",strings->_strings[i],
-               result->_string,result->_partial_distances[i]);
+               result->_string,result->_distances[i]);
    }
 
    nsr_strings_destroy(strings);
    free(strings);
-   free(result->_partial_distances);
+   free(result->_distances);
    free(result->_string);
    free(result);
 

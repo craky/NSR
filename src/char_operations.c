@@ -38,7 +38,7 @@ void all_words_rec(char input[], nsr_strings_t *strings,
             min_dist = tmp_dist;
             memcpy(result->_string,input,input_length);
             result->_total_distance = min_dist;
-            set_partial_distances(strings,input,result);
+            set_distances(strings,input,result);
         }
 
         if (idx == input_length - 1)
@@ -95,14 +95,14 @@ int get_worst_dist(nsr_strings_t *strings, const char *input)
     return worst_dist;
 }
 
-void set_partial_distances(nsr_strings_t *strings, const char *input,
+void set_distances(nsr_strings_t *strings, const char *input,
         nsr_result_t *result)
 {
     int i = 0;
 
     for(i = 0; i < strings->_count; i++)
     {
-        result->_partial_distances[i] = hamming_dist(strings->_strings[i],
+        result->_distances[i] = hamming_dist(strings->_strings[i],
                 input);
     }
 }
