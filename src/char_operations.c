@@ -1,4 +1,5 @@
 #include "char_operations.h"
+#include "nsr_stack.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -8,11 +9,11 @@
 /* generate_char = is consisted of 'a'                                        */
 
 /******************************************************************************/
-char * generate_string(int size)
+char *generate_string(int length, char fill_char)
 {
-    char * new_string = (char *) malloc(size + 1);
-    memset(new_string, 'a', size);
-    new_string[size] = 0;
+    char *new_string = (char *) malloc(length + 1);
+    memset(new_string, fill_char, length);
+    new_string[length] = 0;
     return new_string;
 }
 /******************************************************************************/
@@ -48,6 +49,64 @@ void all_words_rec(char input[], nsr_strings_t *strings,
     }
 }
 
+
+nsr_result_t* nsr_solve(const nsr_strings_t *strings)
+{
+   char *tmp_str;
+   nsr_stack_t stack;
+   nsr_stack_elem_t elem;
+   nsr_result_t *result;
+   int nchars, tmp_dist, prev_idx = 0, min_dist = INT_MAX;
+
+   result = (nsr_result_t *) malloc(sizeof(nsr_result_t));
+   nsr_result_init(result, strings);
+   nsr_stack_init(&stack);
+
+   tmp_str = generate_string(strings->_min_string_length, 'a');
+
+   nsr_stack_push(&stack, -1);
+   tmp_str[0] = 'a';
+   while (!nsr_stack_empty(&stack))
+   {
+      elem = nsr_stack_pop(&stack);
+      if (elem._idx == strings->_min_string_length)
+      {
+         prev_idx = elem._idx;
+         continue;
+      }
+
+      if (prev_idx < elem._idx)
+      {
+         if (elem._idx == strings->_min_string_length - 1)
+            tmp_str[elem._idx] = 'a';
+         else
+            tmp_str[elem._idx] = 'a' - 1;
+      }
+
+      for (nchars = 'z' - 'a' + 1; nchars--; )
+        nsr_stack_push(&stack, elem._idx + 1);
+
+      if (elem._idx == strings->_min_string_length - 1)
+      {
+         tmp_dist = get_worst_dist(strings, tmp_str);
+         if (tmp_dist < min_dist)
+         {
+            min_dist = tmp_dist;
+            memcpy(result->_string, tmp_str, strings->_min_string_length + 1);
+            result->_total_distance = tmp_dist;
+            set_distances(strings, tmp_str, result);
+         }
+      }
+      if (elem._idx >= 0)
+         tmp_str[elem._idx]++;
+      prev_idx = elem._idx;
+   }
+
+   free(tmp_str);
+   nsr_stack_destroy(&stack);
+   return result;
+}
+
 int hamming_dist(const char *str1, const char *str2)
 {
     const char *shorter, *longer;
@@ -79,7 +138,7 @@ int hamming_dist(const char *str1, const char *str2)
 }
 
 
-int get_worst_dist(nsr_strings_t *strings, const char *input)
+int get_worst_dist(const nsr_strings_t *strings, const char *input)
 {
     int i = 0;
     int worst_dist = 0;
@@ -95,7 +154,7 @@ int get_worst_dist(nsr_strings_t *strings, const char *input)
     return worst_dist;
 }
 
-void set_distances(nsr_strings_t *strings, const char *input,
+void set_distances(const nsr_strings_t *strings, const char *input,
         nsr_result_t *result)
 {
     int i = 0;

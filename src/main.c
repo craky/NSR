@@ -38,7 +38,6 @@ int main(int argc, char **argv)
    nsr_result_t *result;
    int i = 0;
    strings = (nsr_strings_t *) malloc(sizeof(nsr_strings_t));
-   result = (nsr_result_t *) malloc(sizeof(nsr_result_t));
    if (argc != 2)
    {
       fprintf(stderr, "usage: %s input_file\n", argv[0]);
@@ -48,18 +47,14 @@ int main(int argc, char **argv)
    input = fopen(argv[1], "r");
 
    nsr_read_strings(input, strings);
-   char * compareString = generate_string(strings->_min_string_length);
-   nsr_result_init(result, strings);
-   nsr_strings_print(strings);
 
-   all_words_rec(compareString,strings,strings->_min_string_length,0,INT_MAX,result);
+   result = nsr_solve(strings);
+
    printf("Result string is \'%s\' with total distance %d.\n",result->_string,
            result->_total_distance);
    for(i = 0; i < strings->_count; i++)
-   {
        printf(" hamming_dist(%s,%s) = %d\n",strings->_strings[i],
                result->_string,result->_distances[i]);
-   }
 
    nsr_strings_destroy(strings);
    free(strings);

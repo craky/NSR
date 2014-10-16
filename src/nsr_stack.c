@@ -17,7 +17,7 @@ int nsr_stack_empty(const nsr_stack_t *stack)
    return !stack->_size;
 }
 
-void nsr_stack_push(nsr_stack_t *stack, int idx, int min_dist)
+void nsr_stack_push(nsr_stack_t *stack, int idx)
 {
    nsr_stack_elem_t *elements_new;
 
@@ -33,7 +33,6 @@ void nsr_stack_push(nsr_stack_t *stack, int idx, int min_dist)
    }
 
    stack->_elements[stack->_size]._idx = idx;
-   stack->_elements[stack->_size]._min_dist = min_dist;
    stack->_size++;
 }
 
@@ -52,6 +51,5 @@ void nsr_stack_print(const nsr_stack_t *stack)
    int i;
    printf("size: %d\n\nstack elements:\n", stack->_size);
    for (i = 0; i < stack->_size; i++)
-      printf("idx: %d; min_dist: %d\n", stack->_elements[i]._idx,
-         stack->_elements[i]._min_dist);
+      printf("idx: %d;\n", stack->_elements[i]._idx);
 }
