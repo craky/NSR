@@ -63,8 +63,7 @@ int main(int argc, char **argv)
 
    nsr_strings_destroy(strings);
    free(strings);
-   free(result->_distances);
-   free(result->_string);
+   nsr_result_destroy(result);
    free(result);
 
    fclose(input);

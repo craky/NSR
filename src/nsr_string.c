@@ -32,3 +32,9 @@ void nsr_result_init(nsr_result_t *result, const nsr_strings_t *strings)
    result->_distances = (int *) malloc(result->_distances_count * sizeof(int));
    result->_string = (char *) malloc(strings->_min_string_length + 1);
 }
+
+void nsr_result_destroy(nsr_result_t *result)
+{
+   free(result->_distances);
+   free(result->_string);
+}
