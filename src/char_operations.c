@@ -8,7 +8,7 @@
 /* generate_char = is consisted of 'a'                                        */
 
 /******************************************************************************/
-char * generate_string(int size) 
+char * generate_string(int size)
 {
     char * new_string = (char *) malloc(size + 1);
     memset(new_string, 'a', size);
@@ -20,7 +20,7 @@ char * generate_string(int size)
 
 /******************************************************************************/
 void all_words_rec(char input[], nsr_strings_t *strings,
-        int input_length, int idx, int min_dist, nsr_result_t *result) 
+        int input_length, int idx, int min_dist, nsr_result_t *result)
 {
     int nchars = 'z' - 'a' + 1;
     int tmp_dist = 0;
@@ -30,17 +30,17 @@ void all_words_rec(char input[], nsr_strings_t *strings,
 
     input[idx] = 'a';
 
-    while (nchars--) 
+    while (nchars--)
     {
         tmp_dist = get_worst_dist(strings, input);
         if (tmp_dist < min_dist)
-        { 
+        {
             min_dist = tmp_dist;
             memcpy(result->_string,input,input_length);
             result->_total_distance = min_dist;
             set_partial_distances(strings,input,result);
         }
-        
+
         if (idx == input_length - 1)
             printf("%s [%d]\n", input,tmp_dist);
         all_words_rec(input, strings, input_length, idx + 1, min_dist,result);
@@ -48,7 +48,7 @@ void all_words_rec(char input[], nsr_strings_t *strings,
     }
 }
 
-int hamming_dist(const char *str1, const char *str2) 
+int hamming_dist(const char *str1, const char *str2)
 {
     const char *shorter, *longer;
     int i, min_dist = INT_MAX, shifts, shift_dist;
@@ -59,14 +59,14 @@ int hamming_dist(const char *str1, const char *str2)
     longer = str1;
     shorter = str2;
 
-    if (str2_len > str1_len) 
+    if (str2_len > str1_len)
     {
         longer = str2;
         shorter = str1;
     }
 
     shifts = abs(str1_len - str2_len) + 1;
-    for (i = 0; i < shifts; i++) 
+    for (i = 0; i < shifts; i++)
     {
         shift_dist = 0;
         str2 = shorter;
@@ -84,22 +84,22 @@ int get_worst_dist(nsr_strings_t *strings, const char *input)
     int i = 0;
     int worst_dist = 0;
     int tmp_dist = 0;
-    
+
     for(i = 0; i < strings->_count; i++)
     {
         tmp_dist = hamming_dist(strings->_strings[i],input);
         if(worst_dist < tmp_dist)
                 worst_dist = tmp_dist;
     }
-    
+
     return worst_dist;
 }
 
-void set_partial_distances(nsr_strings_t *strings, const char *input, 
+void set_partial_distances(nsr_strings_t *strings, const char *input,
         nsr_result_t *result)
 {
     int i = 0;
-    
+
     for(i = 0; i < strings->_count; i++)
     {
         result->_partial_distances[i] = hamming_dist(strings->_strings[i],
