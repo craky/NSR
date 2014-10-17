@@ -1,14 +1,11 @@
-#include "char_operations.h"
-#include "nsr_stack.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
 
-/******************************************************************************/
-/* generate_char = is consisted of 'a'                                        */
+#include "char_operations.h"
+#include "nsr_stack.h"
 
-/******************************************************************************/
 char *generate_string(int length, char fill_char)
 {
     char *new_string = (char *) malloc(length + 1);
@@ -16,12 +13,9 @@ char *generate_string(int length, char fill_char)
     new_string[length] = 0;
     return new_string;
 }
-/******************************************************************************/
-/* all_words_rec - write to an output all words with size = size;             */
 
-/******************************************************************************/
 void all_words_rec(char input[], nsr_strings_t *strings,
-        int input_length, int idx, int min_dist, nsr_result_t *result)
+        int input_length, int idx, nsr_result_t *result)
 {
     int nchars = 'z' - 'a' + 1;
     int tmp_dist = 0;
@@ -33,24 +27,23 @@ void all_words_rec(char input[], nsr_strings_t *strings,
 
     while (nchars--)
     {
-        tmp_dist = get_worst_dist(strings, input);
-        if (tmp_dist < min_dist)
+        tmp_dist = get_maximum_dist(strings, input);
+        if (tmp_dist < result->_max_distance)
         {
-            min_dist = tmp_dist;
-            memcpy(result->_string,input,input_length);
-            result->_total_distance = min_dist;
-            set_distances(strings,input,result);
+            result->_max_distance = tmp_dist;
+            memcpy(result->_string, input, input_length);
+            set_distances(strings, input, result);
         }
 
         if (idx == input_length - 1)
             printf("%s [%d]\n", input,tmp_dist);
-        all_words_rec(input, strings, input_length, idx + 1, min_dist,result);
+        all_words_rec(input, strings, input_length, idx + 1, result);
         input[idx]++;
     }
 }
 
 
-nsr_result_t* nsr_solve(const nsr_strings_t *strings)
+nsr_result_t *nsr_solve(const nsr_strings_t *strings)
 {
    char *tmp_str;
    nsr_stack_t stack;
@@ -88,12 +81,12 @@ nsr_result_t* nsr_solve(const nsr_strings_t *strings)
 
       if (elem._idx == strings->_min_string_length - 1)
       {
-         tmp_dist = get_worst_dist(strings, tmp_str);
+         tmp_dist = get_maximum_dist(strings, tmp_str);
          if (tmp_dist < min_dist)
          {
             min_dist = tmp_dist;
             memcpy(result->_string, tmp_str, strings->_min_string_length + 1);
-            result->_total_distance = tmp_dist;
+            result->_max_distance = tmp_dist;
             set_distances(strings, tmp_str, result);
          }
       }
@@ -138,20 +131,20 @@ int hamming_dist(const char *str1, const char *str2)
 }
 
 
-int get_worst_dist(const nsr_strings_t *strings, const char *input)
+int get_maximum_dist(const nsr_strings_t *strings, const char *input)
 {
     int i = 0;
-    int worst_dist = 0;
+    int maximum_dist = 0;
     int tmp_dist = 0;
 
     for(i = 0; i < strings->_count; i++)
     {
         tmp_dist = hamming_dist(strings->_strings[i],input);
-        if(worst_dist < tmp_dist)
-                worst_dist = tmp_dist;
+        if(maximum_dist < tmp_dist)
+                maximum_dist = tmp_dist;
     }
 
-    return worst_dist;
+    return maximum_dist;
 }
 
 void set_distances(const nsr_strings_t *strings, const char *input,

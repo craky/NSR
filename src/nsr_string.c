@@ -28,7 +28,7 @@ int nsr_strings_min_length(const nsr_strings_t *strings)
 void nsr_result_init(nsr_result_t *result, const nsr_strings_t *strings)
 {
    result->_distances_count = strings->_count;
-   result->_total_distance = INT_MAX;
+   result->_max_distance = INT_MAX;
    result->_distances = (int *) malloc(result->_distances_count * sizeof(int));
    result->_string = (char *) malloc(strings->_min_string_length + 1);
 }

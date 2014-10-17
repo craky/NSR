@@ -13,24 +13,6 @@
 #include "nsr_string.h"
 #include "nsr_io.h"
 
-/*
-int main(int argc, char *argv[]) {
-    int result;
-    char * input2 = generate_string(3);
-
-    printf("Generated char is %s \n", input2);
-    result = log(TESTING_INPUT_SIZE);
-    printf("log(%d) = %d\n", TESTING_INPUT_SIZE, result);
-
-    all_words_rec(input2,3,0);
-
-    printf("%d\n", hamming_dist("abcd", "aec"));
-
-    free(input2);
-    return 0;
-}
-*/
-
 int main(int argc, char **argv)
 {
    FILE *input;
@@ -50,11 +32,11 @@ int main(int argc, char **argv)
 
    result = nsr_solve(strings);
 
-   printf("Result string is \'%s\' with total distance %d.\n",result->_string,
-           result->_total_distance);
+   printf("Result string is \'%s\' with total distance %d.\n", result->_string,
+           result->_max_distance);
    for(i = 0; i < strings->_count; i++)
-       printf(" hamming_dist(%s,%s) = %d\n",strings->_strings[i],
-               result->_string,result->_distances[i]);
+       printf(" hamming_dist(%s,%s) = %d\n", strings->_strings[i],
+               result->_string, result->_distances[i]);
 
    nsr_strings_destroy(strings);
    free(strings);
