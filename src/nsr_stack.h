@@ -24,6 +24,7 @@ void nsr_stack_init(nsr_stack_t *stack);
 /**
  * returns whether the stack is empty
  * @param stack
+ * @return 1 if stack is empty; 0 otherwise
  */
 int nsr_stack_empty(const nsr_stack_t *stack);
 
@@ -44,6 +45,7 @@ void nsr_stack_destroy(nsr_stack_t *stack);
  * returns the element from the top of the stack and deletes the element from
  * the stack
  * @param stack stack to pop from
+ * @return the element from top of the stack
  */
 nsr_stack_elem_t nsr_stack_pop(nsr_stack_t *stack);
 
