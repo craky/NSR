@@ -56,5 +56,11 @@ void set_distances(const nsr_strings_t *strings, const char *input,
  * @return the best result found
  */
 nsr_result_t *nsr_solve(const nsr_strings_t *strings);
+/**
+ * iterative parallel nsr solver, powered by Open MPI
+ * @param strings the set of input strings
+ * @return the best result found
+ */
+nsr_result_t *mpi_nsr_solve(const nsr_strings_t *strings);
 
 #endif /* __CHAR_OPERAIONS_H__ */

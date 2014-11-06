@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
+#include <mpi.h>
 
 #include "char_operations.h"
 #include "nsr_stack.h"
@@ -99,7 +100,12 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    nsr_stack_destroy(&stack);
    return result;
 }
-
+nsr_result_t *mpi_nsr_solve(const nsr_strings_t *strings){
+    MPI_Init(NULL,NULL); /* MPI_Init arguments are MPI_Init (&argc, &argv);*/
+    
+    MPI_Finalize(); /* ends MPI*/
+    return NULL;
+}
 int hamming_dist(const char *str1, const char *str2)
 {
     const char *shorter, *longer;
