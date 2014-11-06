@@ -2,6 +2,8 @@ OBJECTS = ./objects/main.o ./objects/char_operations.o ./objects/nsr_io.o \
 	./objects/nsr_string.o ./objects/nsr_stack.o
 CXXFLAGS = -Wall -pedantic -g
 BIN = ./NSR
+# allowed CXX options are 'gcc' or 'mpicc' (mpicc - Open MPI compiler)
+CXX = mpicc
 
 all: $(OBJECTS)
 	@rm -f tmp/*
@@ -15,13 +17,13 @@ clean:
 	@rm -rf $(BIN)
 
 $(BIN):$(OBJECTS)
-	@gcc $(CXXFLAGS) $(OBJECTS) -o $(BIN) -lm
+	@$(CXX) $(CXXFLAGS) $(OBJECTS) -o $(BIN) -lm
 
 ./objects/main.o: ./src/main.c
 	@echo -n "Compiling main.c..."
 	@mkdir -p log
 	@mkdir -p tmp
-	@gcc $(CXXFLAGS) -c ./src/main.c -o ./objects/main.o -lm
+	@$(CXX) $(CXXFLAGS) -c ./src/main.c -o ./objects/main.o -lm
 	@if test -e ./tmp/main.err;then tput setaf 1; echo "[ERROR]";elif test -s ./log/main.log;then tput setaf 3;echo "[WARNING]";else tput setaf 2; echo "[OK]";fi;
 	@tput sgr0;
 
@@ -29,7 +31,7 @@ $(BIN):$(OBJECTS)
 	@echo -n "Compiling char_operations.c..."
 	@mkdir -p log
 	@mkdir -p tmp
-	@gcc $(CXXFLAGS) -c ./src/char_operations.c -o ./objects/char_operations.o -lm
+	@$(CXX) $(CXXFLAGS) -c ./src/char_operations.c -o ./objects/char_operations.o -lm
 	@if test -e ./tmp/char_operations.err;then tput setaf 1; echo "[ERROR]";elif test -s ./log/char_operations.log;then tput setaf 3;echo "[WARNING]";else tput setaf 2; echo "[OK]";fi;
 	@tput sgr0;
 
@@ -37,7 +39,7 @@ $(BIN):$(OBJECTS)
 	@echo -n "Compiling nsr_io.c..."
 	@mkdir -p log
 	@mkdir -p tmp
-	@gcc $(CXXFLAGS) -c ./src/nsr_io.c -o ./objects/nsr_io.o -lm
+	@$(CXX) $(CXXFLAGS) -c ./src/nsr_io.c -o ./objects/nsr_io.o -lm
 	@if test -e ./tmp/nsr_io.err;then tput setaf 1; echo "[ERROR]";elif test -s ./log/nsr_io.log;then tput setaf 3;echo "[WARNING]";else tput setaf 2; echo "[OK]";fi;
 	@tput sgr0;
 
@@ -45,7 +47,7 @@ $(BIN):$(OBJECTS)
 	@echo -n "Compiling nsr_string.c..."
 	@mkdir -p log
 	@mkdir -p tmp
-	@gcc $(CXXFLAGS) -c ./src/nsr_string.c -o ./objects/nsr_string.o -lm
+	@$(CXX) $(CXXFLAGS) -c ./src/nsr_string.c -o ./objects/nsr_string.o -lm
 	@if test -e ./tmp/nsr_string.err;then tput setaf 1; echo "[ERROR]";elif test -s ./log/nsr_string.log;then tput setaf 3;echo "[WARNING]";else tput setaf 2; echo "[OK]";fi;
 	@tput sgr0;
 
@@ -53,6 +55,6 @@ $(BIN):$(OBJECTS)
 	@echo -n "Compiling nsr_stack.c..."
 	@mkdir -p log
 	@mkdir -p tmp
-	@gcc $(CXXFLAGS) -c ./src/nsr_stack.c -o ./objects/nsr_stack.o -lm
+	@$(CXX) $(CXXFLAGS) -c ./src/nsr_stack.c -o ./objects/nsr_stack.o -lm
 	@if test -e ./tmp/nsr_stack.err;then tput setaf 1; echo "[ERROR]";elif test -s ./log/nsr_stack.log;then tput setaf 3;echo "[WARNING]";else tput setaf 2; echo "[OK]";fi;
 	@tput sgr0;
