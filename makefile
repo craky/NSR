@@ -1,5 +1,5 @@
 OBJECTS = ./objects/main.o ./objects/char_operations.o ./objects/nsr_io.o \
-	./objects/nsr_string.o ./objects/nsr_stack.o
+	./objects/nsr_string.o ./objects/nsr_stack.o ./objects/proc_com.o
 CXXFLAGS = -ansi -std=c99 -pedantic -Wall 
 BIN = ./NSR
 # allowed CXX options are 'gcc' or 'mpicc' (mpicc - Open MPI compiler)
@@ -57,4 +57,12 @@ $(BIN):$(OBJECTS)
 	@mkdir -p tmp
 	@$(CXX) $(CXXFLAGS) -c ./src/nsr_stack.c -o ./objects/nsr_stack.o -lm
 	@if test -e ./tmp/nsr_stack.err;then tput setaf 1; echo "[ERROR]";elif test -s ./log/nsr_stack.log;then tput setaf 3;echo "[WARNING]";else tput setaf 2; echo "[OK]";fi;
+	@tput sgr0;
+
+./objects/proc_com.o: ./src/proc_com.c ./src/proc_com.h
+	@echo -n "Compiling proc_com.c..."
+	@mkdir -p log
+	@mkdir -p tmp
+	@$(CXX) $(CXXFLAGS) -c ./src/proc_com.c -o ./objects/proc_com.o -lm
+	@if test -e ./tmp/proc_com.err;then tput setaf 1; echo "[ERROR]";elif test -s ./log/proc_com.log;then tput setaf 3;echo "[WARNING]";else tput setaf 2; echo "[OK]";fi;
 	@tput sgr0;
