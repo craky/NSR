@@ -35,6 +35,8 @@ void nsr_result_init(nsr_result_t *result, const nsr_strings_t *strings)
 
 void nsr_result_destroy(nsr_result_t *result)
 {
+    if(result == NULL)
+        return;
    free(result->_distances);
    free(result->_string);
 }
