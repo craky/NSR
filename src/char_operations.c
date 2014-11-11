@@ -100,12 +100,24 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    nsr_stack_destroy(&stack);
    return result;
 }
-nsr_result_t *mpi_nsr_solve(const nsr_strings_t *strings){
+
+
+nsr_result_t *mpi_nsr_solve(const nsr_strings_t *strings)
+{
+    int proc_num;
+    
     MPI_Init(NULL,NULL); /* MPI_Init arguments are MPI_Init (&argc, &argv);*/
+    
+    /* find out number of processes */
+    MPI_Comm_size(MPI_COMM_WORLD, &proc_num);
+    
+    printf("Number of precesses is %d.\n",proc_num);
     
     MPI_Finalize(); /* ends MPI*/
     return NULL;
 }
+
+
 int hamming_dist(const char *str1, const char *str2)
 {
     const char *shorter, *longer;
