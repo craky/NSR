@@ -169,7 +169,7 @@ nsr_result_t *mpi_nsr_solve(const nsr_strings_t *strings)
         nsr_stack_push(&stack, elem._idx + 1, stack_str,
                 strings->_min_string_length);
       }
-
+      
       if (elem._idx == strings->_min_string_length - 1)
       {
          tmp_dist = get_maximum_dist(strings, tmp_str);

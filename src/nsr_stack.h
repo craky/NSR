@@ -54,6 +54,14 @@ void nsr_stack_destroy(nsr_stack_t *stack);
 nsr_stack_elem_t nsr_stack_pop(nsr_stack_t *stack);
 
 /**
+ * returns the element from the bottom of the stack and deletes the element from
+ * the stack
+ * @param stack to bottom pop from
+ * @return the element from bottom of the stack
+ */
+nsr_stack_elem_t nsr_stack_pop_bottom(nsr_stack_t *stack);
+
+/**
  * prints the content of the stack
  * @param stack the stack to print
  */

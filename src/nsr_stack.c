@@ -53,6 +53,17 @@ nsr_stack_elem_t nsr_stack_pop(nsr_stack_t *stack)
    return stack->_elements[--stack->_size];
 }
 
+nsr_stack_elem_t nsr_stack_pop_bottom(nsr_stack_t *stack)
+{
+    if(nsr_stack_empty(stack))
+    {
+        printf("Trying to get elem from empty stack.\n");
+    }
+    
+    stack->_size--;
+    return stack->_elements[0];
+}
+
 void nsr_stack_print(const nsr_stack_t *stack)
 {
    int i;
