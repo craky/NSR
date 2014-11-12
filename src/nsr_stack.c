@@ -7,6 +7,7 @@
 void nsr_stack_init(nsr_stack_t *stack)
 {
    stack->_size = 0;
+   stack->_bottom = 0;
    stack->_max_size = NSR_STACK_INIT_SIZE;
    stack->_elements = (nsr_stack_elem_t *) malloc(stack->_max_size *
       sizeof(nsr_stack_elem_t));
@@ -61,7 +62,8 @@ nsr_stack_elem_t nsr_stack_pop_bottom(nsr_stack_t *stack)
     }
     
     stack->_size--;
-    return stack->_elements[0];
+    stack->_bottom++;
+    return stack->_elements[stack->_bottom-1];
 }
 
 void nsr_stack_print(const nsr_stack_t *stack)

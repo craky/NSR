@@ -13,6 +13,7 @@ typedef struct nsr_stack
 {
    nsr_stack_elem_t *_elements;
    int _size;
+   int _bottom;
    int _max_size;
 } nsr_stack_t;
 
