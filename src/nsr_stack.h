@@ -6,6 +6,7 @@
 typedef struct nsr_stack_elem
 {
    int _idx;
+   char *_string;
 } nsr_stack_elem_t;
 
 typedef struct nsr_stack
@@ -32,8 +33,11 @@ int nsr_stack_empty(const nsr_stack_t *stack);
  * inserts an index `idx' to the stack
  * @param stack
  * @param idx index to insert
+ * @param string string to insert
+ * @param string_size
  */
-void nsr_stack_push(nsr_stack_t *stack, int idx);
+void nsr_stack_push(nsr_stack_t *stack, int idx, char string[], 
+        const int string_size);
 
 /**
  * deletes the stack

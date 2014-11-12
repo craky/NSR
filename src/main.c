@@ -31,23 +31,17 @@ int main(int argc, char **argv)
    nsr_read_strings(input, strings);
 
    /* Start testing MPI */
-   result = mpi_nsr_solve(strings);
-   
-   /* Only because of warning unused variable 'i' */
-   i++;
+   result = mpi_nsr_solve(strings); 
    /* End testing MPI*/
    
    
-/*
-   result = nsr_solve(strings);
-
+   /*result = nsr_solve(strings);*/
    printf("Result string is \'%s\' with total distance %d.\n", result->_string,
            result->_max_distance);
    for(i = 0; i < strings->_count; i++)
        printf(" hamming_dist(%s,%s) = %d\n", strings->_strings[i],
                result->_string, result->_distances[i]);
-*/
-
+   
    nsr_strings_destroy(strings);
    free(strings);
    nsr_result_destroy(result);

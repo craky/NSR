@@ -1,6 +1,6 @@
 OBJECTS = ./objects/main.o ./objects/char_operations.o ./objects/nsr_io.o \
 	./objects/nsr_string.o ./objects/nsr_stack.o ./objects/proc_com.o
-CXXFLAGS = -ansi -std=c99 -pedantic -Wall 
+CXXFLAGS = -ansi -std=c99 -pedantic -Wall -g
 BIN = ./NSR
 # allowed CXX options are 'gcc' or 'mpicc' (mpicc - Open MPI compiler)
 CXX = mpicc
