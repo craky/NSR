@@ -31,7 +31,7 @@ int main(int argc, char **argv)
    nsr_read_strings(input, strings);
 
    /* Start testing MPI */
-   result = mpi_nsr_solve(strings); 
+   result = nsr_solve(strings); 
    /* End testing MPI*/
    
    
