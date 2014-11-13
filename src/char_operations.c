@@ -6,6 +6,7 @@
 
 #include "char_operations.h"
 #include "nsr_stack.h"
+#include "proc_com.h"
 
 char *generate_string(int length, char fill_char)
 {
@@ -46,20 +47,20 @@ void all_words_rec(char input[], nsr_strings_t *strings,
 
 nsr_result_t *nsr_solve(const nsr_strings_t *strings)
 {
-   int proc_num;
    char *tmp_str;
    char *stack_str;
+   char *rec_string = (char *) malloc((strings->_min_string_length+1)*sizeof(char));
    nsr_stack_t stack;
    nsr_stack_elem_t elem;
    nsr_result_t *result;
-   int nchars, tmp_dist, prev_idx = 0, min_dist = INT_MAX;
+   int nchars, tmp_dist, prev_idx = 0, min_dist = INT_MAX, 
+           iprobe_counter = CHECK_MSG_AMOUNT, flag = 0;
+   MPI_Status status;
+   int my_rank = 0;
    
-   /* starts MPI */
-   MPI_Init(NULL,NULL); /* MPI_Init arguments are MPI_Init (&argc, &argv);*/
-    
-    /* find out number of processes */
-   MPI_Comm_size(MPI_COMM_WORLD, &proc_num);
-    
+    /* find out process rank */
+   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+   
    /* Stack code */
    result = (nsr_result_t *) malloc(sizeof(nsr_result_t));
    nsr_result_init(result, strings);
@@ -68,11 +69,20 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    tmp_str = generate_string(strings->_min_string_length, 'a');
    stack_str = generate_string(strings->_min_string_length, 'a');
 
-   nsr_stack_push(&stack, -1, tmp_str, strings->_min_string_length);
+   /* Only the first process will start calculation */
+   if(my_rank == 0)
+        nsr_stack_push(&stack, -1, tmp_str, strings->_min_string_length);
+   
    tmp_str[0] = 'a';
    
+   /* All processes (except 0) are waiting for work from proc. 0 */
+   if(my_rank != 0)
+   {
+       proc_com_ask_for_work(&stack,strings,tmp_str);
+   }
+   
    while (!nsr_stack_empty(&stack))
-   {  
+   {            
       elem = nsr_stack_pop(&stack);
       if (elem._idx == strings->_min_string_length)
       {
@@ -114,20 +124,45 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
       if (elem._idx >= 0)
          tmp_str[elem._idx]++;
       prev_idx = elem._idx;
+      
+      iprobe_counter++;
+       
+       if((iprobe_counter % CHECK_MSG_AMOUNT) == 0)
+       {
+           MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, 
+                   &status);
+           if(flag)
+           {
+               switch(status.MPI_TAG)
+               {
+                   case MSG_WORK_REQUEST: MPI_Recv(NULL,0,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+                                          proc_com_send_work(&stack,status.MPI_SOURCE,strings->_min_string_length+1); /* TODO maybe the string size +1 */
+                                          break;
+                   case MSG_WORK_SENT: break;
+                   
+                   case MSG_FINISH: printf("MSG_FINISH appeared for proc\n");
+                                    MPI_Finalize();
+                                    exit(0);
+                                    break;
+                   
+                   default: printf("Unknown MPI_TAG for process.\n");
+               }
+           }
+       }
    }
      
    /* Sorry, but i needed to delete these free(tmp_string) but dont know why */
    nsr_stack_destroy(&stack);
     
-    MPI_Finalize(); /* ends MPI*/
-    
+   proc_com_finish_processes();
+   free(rec_string);
     return result;
 }
 
 
 nsr_result_t *mpi_nsr_solve(const nsr_strings_t *strings)
 {
-    return NULL;
+    return NULL; 
 }
 
 

@@ -2,6 +2,16 @@
 #define __CHAR_OPERAIONS_H__
 #include "nsr_string.h"
 
+#define CHECK_MSG_AMOUNT  100
+#define BUFFER_LENGTH 100
+
+/* MPI message tags */
+#define MSG_WORK_REQUEST 1000
+#define MSG_WORK_SENT    1001
+#define MSG_WORK_NOWORK  1002
+#define MSG_TOKEN        1003
+#define MSG_FINISH       1004
+
 /**
  * generates a string of length `length' filled with `fill_char' char
  * @param length length of the output string
