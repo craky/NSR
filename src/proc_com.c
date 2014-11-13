@@ -37,12 +37,13 @@ void proc_com_send_work(nsr_stack_t *stack, const int dest_proc, const int str_s
 }
 
 void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
-        char *tmp_str)
+        char *tmp_str, int *token)
 {
     int wait_for_work = 0, position = 0, flag = 0, rec_idx = -1,prob_counter =0;
     MPI_Status status;
     char buffer[BUFFER_LENGTH];
     char *rec_string = (char *) malloc((strings->_min_string_length+1)*sizeof(char));
+    token = BLACK;
     
     while(1)
        {
@@ -68,11 +69,15 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
                                                 memcpy(tmp_str,buffer,strings->_min_string_length+1);
                                                 rec_idx = buffer[strings->_min_string_length+1];
                                                 printf("I received idx %d and string \'%s\'. \n",rec_idx,rec_string);
-                                                rec_idx++; /* Need next idx char */
                                                 nsr_stack_push(stack,rec_idx,rec_string,strings->_min_string_length);
                                                 return;
-                   case MSG_WORK_NOWORK:        break;
-                   case MSG_TOKEN:              break;
+                   case MSG_WORK_NOWORK:        return;
+                   
+                   case MSG_TOKEN:              MPI_Recv(&buffer,1,MPI_INT, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+                                                if(buffer[0] == WHITE)
+                                                        printf("Ou a white Token appeared.\n");
+                                                break;
+                                                
                    case MSG_FINISH:             printf("MSG_FINISH appeared for proc\n");
                                                 MPI_Finalize();
                                                 exit(0);
@@ -83,4 +88,46 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
                }
            }
        }
+}
+
+void proc_com_check_idle_state(const int my_rank, const int proc_num)
+{
+    int iprobe_counter = 0, flag = 0, token = WHITE;
+    MPI_Status status;
+    char buffer[BUFFER_LENGTH];
+    
+    
+    /* send token to the next processor */
+    buffer[0] = token;
+    MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
+    
+    while(1)
+    {
+        iprobe_counter++;
+        if((iprobe_counter%CHECK_MSG_AMOUNT) == 0)
+        {
+            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, 
+                   &status);
+            
+            if(flag)
+            {
+                switch(status.MPI_TAG)
+                {
+                    case MSG_WORK_REQUEST:      MPI_Send(NULL,0,MPI_CHAR,status.MPI_SOURCE,MSG_WORK_NOWORK,MPI_COMM_WORLD);
+                                                break;
+                    case MSG_TOKEN:             
+                               MPI_Recv(&buffer,1,MPI_INT, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+                               if(buffer[0] == BLACK)
+                                   return;
+                               token = WHITE;
+                               /* send token to the next processor */
+                               buffer[0] = token;
+                               MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
+                               break;
+                               
+                    default: printf("Unexpected tag when I want to exit.\n");
+                }
+            }
+        }
+    }
 }

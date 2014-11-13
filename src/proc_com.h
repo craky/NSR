@@ -15,6 +15,10 @@
 #define MSG_TOKEN        1003
 #define MSG_FINISH       1004
 
+/* Token colors */
+#define BLACK  0
+#define WHITE 1
+
 /**
  * 
  * Algorithms for donor search
@@ -48,6 +52,13 @@ void proc_com_send_work(nsr_stack_t *stack, const int dest_proc, const int str_s
  * @param tmp_str from char_operatioons.h
  */
 void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
-        char *tmp_str);
+        char *tmp_str, int *token);
+
+/**
+ * Receive a token a send yours, to the next processor
+ * @param my_rank 
+ * @param proc_num
+ */
+void proc_com_check_idle_state(const int my_rank, const int proc_num);
 
 #endif
