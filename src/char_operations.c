@@ -48,18 +48,18 @@ void all_words_rec(char input[], nsr_strings_t *strings,
 nsr_result_t *nsr_solve(const nsr_strings_t *strings)
 {
    char *tmp_str;
-   char *stack_str;
    char *rec_string = (char *) malloc((strings->_min_string_length+1)*sizeof(char));
    nsr_stack_t stack;
    nsr_stack_elem_t elem;
    nsr_result_t *result;
-   int nchars, tmp_dist, prev_idx = 0, min_dist = INT_MAX, 
-           iprobe_counter = CHECK_MSG_AMOUNT, flag = 0;
-   MPI_Status status;
-   int my_rank = 0;
+   int tmp_dist, min_dist = INT_MAX; 
+   int my_rank = 0,i = 0, token = BLACK, proc_num = 0;
    
     /* find out process rank */
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+   
+   /* find out number of processes */
+   MPI_Comm_size(MPI_COMM_WORLD, &proc_num);
    
    /* Stack code */
    result = (nsr_result_t *) malloc(sizeof(nsr_result_t));
@@ -67,7 +67,6 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    nsr_stack_init(&stack);
 
    tmp_str = generate_string(strings->_min_string_length, 'a');
-   stack_str = generate_string(strings->_min_string_length, 'a');
 
    /* Only the first process will start calculation */
    if(my_rank == 0)
@@ -77,41 +76,16 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    
    /* All processes (except 0) are waiting for work from proc. 0 */
    if(my_rank != 0)
+       proc_com_ask_for_work(&stack,strings,tmp_str,&token);
+  
+   while(!nsr_stack_empty(&stack))
    {
-       proc_com_ask_for_work(&stack,strings,tmp_str);
-   }
-   
-   while (!nsr_stack_empty(&stack))
-   {            
-      elem = nsr_stack_pop(&stack);
-      if (elem._idx == strings->_min_string_length)
-      {
-         prev_idx = elem._idx;
-         continue;
-      }
-
-      if (prev_idx < elem._idx)
-      {
-         if (elem._idx == strings->_min_string_length - 1)
-            tmp_str[elem._idx] = 'a';
-         else
-            tmp_str[elem._idx] = 'a' - 1;
-      }
-      
-      for (nchars = 'z' - 'a' + 1; nchars--; )
-      { 
-        memcpy(stack_str,tmp_str,strings->_min_string_length*sizeof(char));
-        if(elem._idx >= 0)
-                stack_str[elem._idx]++;
-        
-        if (elem._idx != strings->_min_string_length - 1)
-                stack_str[elem._idx+1] = nchars + 'a';
-        nsr_stack_push(&stack, elem._idx + 1, stack_str,
-                strings->_min_string_length);
-      }
-      
-      if (elem._idx == strings->_min_string_length - 1)
-      {
+       elem = nsr_stack_pop(&stack);
+       
+       /* Do not add to stack */
+       if(elem._idx+1 == strings->_min_string_length)
+       {
+           /* check distances */
          tmp_dist = get_maximum_dist(strings, tmp_str);
          if (tmp_dist < min_dist)
          {
@@ -120,41 +94,31 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
             result->_max_distance = tmp_dist;
             set_distances(strings, tmp_str, result);
          }
-      }
-      if (elem._idx >= 0)
-         tmp_str[elem._idx]++;
-      prev_idx = elem._idx;
-      
-      iprobe_counter++;
-       
-       if((iprobe_counter % CHECK_MSG_AMOUNT) == 0)
-       {
-           MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, 
-                   &status);
-           if(flag)
-           {
-               switch(status.MPI_TAG)
-               {
-                   case MSG_WORK_REQUEST: MPI_Recv(NULL,0,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
-                                          proc_com_send_work(&stack,status.MPI_SOURCE,strings->_min_string_length+1); /* TODO maybe the string size +1 */
-                                          break;
-                   case MSG_WORK_SENT: break;
-                   
-                   case MSG_FINISH: printf("MSG_FINISH appeared for proc\n");
-                                    MPI_Finalize();
-                                    exit(0);
-                                    break;
-                   
-                   default: printf("Unknown MPI_TAG for process.\n");
-               }
-           }
+         /* get next elem from stack */
+         continue;
        }
+       memcpy(tmp_str,elem._string,strings->_min_string_length+1);
+       
+       for(i = 0; i < (CHARS_IN_ALPHABET+1); i++)
+       {
+           tmp_str[elem._idx+1] = 'z' - i;
+           nsr_stack_push(&stack,elem._idx+1,tmp_str,strings->_min_string_length);
+       }
+       nsr_stack_print(&stack);
    }
-     
+   
+   if(my_rank != 0)
+   {
+       printf("Accidentaly at the end, stack empty is %d.\n",nsr_stack_empty(&stack));
+   }
    /* Sorry, but i needed to delete these free(tmp_string) but dont know why */
    nsr_stack_destroy(&stack);
-    
-   proc_com_finish_processes();
+   
+   if(my_rank == 0)
+   {
+      // proc_com_check_idle_state(my_rank,proc_num);
+       proc_com_finish_processes();
+   }
    free(rec_string);
     return result;
 }

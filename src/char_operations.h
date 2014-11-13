@@ -2,7 +2,6 @@
 #define __CHAR_OPERAIONS_H__
 #include "nsr_string.h"
 
-#define CHECK_MSG_AMOUNT  100
 #define BUFFER_LENGTH 100
 
 /* MPI message tags */
@@ -11,6 +10,12 @@
 #define MSG_WORK_NOWORK  1002
 #define MSG_TOKEN        1003
 #define MSG_FINISH       1004
+
+/* Token colors */
+#define BLACK  0
+#define WHITE 1
+
+#define CHARS_IN_ALPHABET 25
 
 /**
  * generates a string of length `length' filled with `fill_char' char
