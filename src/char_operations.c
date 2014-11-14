@@ -53,7 +53,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    nsr_stack_elem_t elem;
    nsr_result_t *result;
    int tmp_dist, min_dist = INT_MAX; 
-   int my_rank = 0,i = 0, token = BLACK, proc_num = 0;
+   int my_rank = 0,i = 0, token = BLACK, proc_num = 0, delay_counter = 0;
    
     /* find out process rank */
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -67,12 +67,12 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    nsr_stack_init(&stack);
 
    tmp_str = generate_string(strings->_min_string_length, 'a');
-
+   tmp_str[0] = 'a';/* TODO this looks redundant */
+   
+   
    /* Only the first process will start calculation */
    if(my_rank == 0)
         nsr_stack_push(&stack, -1, tmp_str, strings->_min_string_length);
-   
-   tmp_str[0] = 'a';
    
    /* All processes (except 0) are waiting for work from proc. 0 */
    if(my_rank != 0)
@@ -81,7 +81,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    while(!nsr_stack_empty(&stack))
    {
        elem = nsr_stack_pop(&stack);
-       
+  
        /* Do not add to stack */
        if(elem._idx+1 == strings->_min_string_length)
        {
@@ -104,12 +104,17 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
            tmp_str[elem._idx+1] = 'z' - i;
            nsr_stack_push(&stack,elem._idx+1,tmp_str,strings->_min_string_length);
        }
-       nsr_stack_print(&stack);
+       
+       proc_com_check_flag(&stack, delay_counter++, 
+               strings->_min_string_length +1);
    }
    
    if(my_rank != 0)
    {
        printf("Accidentaly at the end, stack empty is %d.\n",nsr_stack_empty(&stack));
+       printf("But that means i got result:\n");
+       printf("Result string is %s and dist is %d.\n",result->_string,
+               result->_max_distance);
    }
    /* Sorry, but i needed to delete these free(tmp_string) but dont know why */
    nsr_stack_destroy(&stack);

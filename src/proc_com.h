@@ -61,4 +61,6 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
  */
 void proc_com_check_idle_state(const int my_rank, const int proc_num);
 
+void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len);
+
 #endif

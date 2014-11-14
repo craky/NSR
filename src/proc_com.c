@@ -66,7 +66,7 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
                    case MSG_WORK_REQUEST:       break;
                    case MSG_WORK_SENT:          MPI_Recv(&buffer,strings->_min_string_length+1+1,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
                                                 memcpy(rec_string,buffer,strings->_min_string_length+1);
-                                                memcpy(tmp_str,buffer,strings->_min_string_length+1);
+                                                memcpy(tmp_str,buffer,strings->_min_string_length+1); /* TODO: parametr tmp_str and this line there are redundant*/
                                                 rec_idx = buffer[strings->_min_string_length+1];
                                                 printf("I received idx %d and string \'%s\'. \n",rec_idx,rec_string);
                                                 nsr_stack_push(stack,rec_idx,rec_string,strings->_min_string_length);
@@ -128,6 +128,43 @@ void proc_com_check_idle_state(const int my_rank, const int proc_num)
                     default: printf("Unexpected tag when I want to exit.\n");
                 }
             }
+        }
+    }
+}
+
+void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len)
+{
+    int flag = 0;
+    MPI_Status status;
+    
+    /* Delay because of large mode */
+    if((counter%CHECK_MSG_AMOUNT) != 0)
+        return;
+    
+    /* Check the received messages */
+    MPI_Iprobe(MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD, &flag,&status);
+    
+    if(flag)
+    {
+        switch(status.MPI_TAG)
+        {
+            case MSG_WORK_REQUEST:
+                /* Recieve the message */
+                MPI_Recv(NULL,0,MPI_CHAR,MPI_ANY_SOURCE,MPI_ANY_TAG,
+                        MPI_COMM_WORLD,&status);
+                /* Send work to status.MPI_SOURCE */
+                proc_com_send_work(stack,status.MPI_SOURCE,str_len);
+                /* For better debuging I Will send FINIS msg */
+                MPI_Send(NULL,0,MPI_CHAR,status.MPI_SOURCE,MSG_FINISH,
+                        MPI_COMM_WORLD);
+                break;
+                
+            case MSG_FINISH: 
+                MPI_Finalize();
+                exit(0);
+                break;
+                
+            default: printf("Unknown status.MPI_TAG for me.\n");
         }
     }
 }
