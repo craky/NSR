@@ -74,9 +74,12 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    if(my_rank == 0)
         nsr_stack_push(&stack, -1, tmp_str, strings->_min_string_length);
    
+
    /* All processes (except 0) are waiting for work from proc. 0 */
    if(my_rank != 0)
-       proc_com_ask_for_work(&stack,strings,tmp_str,&token);
+      proc_com_ask_for_work(&stack,strings,tmp_str,&token,result);
+       
+ 
   
    while(!nsr_stack_empty(&stack))
    {
@@ -94,6 +97,8 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
             result->_max_distance = tmp_dist;
             set_distances(strings, tmp_str, result);
          }
+         if(my_rank != 0 && nsr_stack_empty(&stack))
+            proc_com_ask_for_work(&stack,strings,tmp_str,&token, result);
          /* get next elem from stack */
          continue;
        }
@@ -104,7 +109,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
            tmp_str[elem._idx+1] = 'z' - i;
            nsr_stack_push(&stack,elem._idx+1,tmp_str,strings->_min_string_length);
        }
-       
+
        proc_com_check_flag(&stack, delay_counter++, 
                strings->_min_string_length +1);
    }
@@ -121,8 +126,9 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    
    if(my_rank == 0)
    {
-      // proc_com_check_idle_state(my_rank,proc_num);
-       proc_com_finish_processes();
+       printf("For now is best %s \n",result->_string);
+       proc_com_check_idle_state(my_rank,proc_num);
+       proc_com_finish_processes(strings->_min_string_length);
    }
    free(rec_string);
     return result;

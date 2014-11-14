@@ -15,7 +15,7 @@ void nsr_stack_init(nsr_stack_t *stack)
 
 int nsr_stack_empty(const nsr_stack_t *stack)
 {
-   return !stack->_size;
+   return stack->_bottom == stack->_size;
 }
 
 void nsr_stack_push(nsr_stack_t *stack, int idx, char string[], 
@@ -61,7 +61,7 @@ nsr_stack_elem_t nsr_stack_pop_bottom(nsr_stack_t *stack)
         printf("Trying to get elem from empty stack.\n");
     }
     
-    stack->_size--;
+    //stack->_size--;
     stack->_bottom++;
     return stack->_elements[stack->_bottom-1];
 }
@@ -70,7 +70,7 @@ void nsr_stack_print(const nsr_stack_t *stack)
 {
    int i;
    printf("size: %d\n\nstack elements:\n", stack->_size);
-   for (i = 0; i < stack->_size; i++)
+   for (i = stack->_bottom; i < stack->_size; i++)
       printf("idx: %d string: %s;\n", stack->_elements[i]._idx,
               stack->_elements[i]._string);
 }

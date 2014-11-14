@@ -35,7 +35,7 @@ int acz_ahd(const int loc_counter, const int proc_sum);
  * Will finish all processes except the process 0
  * Needs to be after MPI_Init() and before MPI_Finalize()
  */
-void proc_com_finish_processes(void);
+void proc_com_finish_processes(const int str_len);
 
 /**
  * Sends work to the destination processor.
@@ -43,7 +43,7 @@ void proc_com_finish_processes(void);
  * @param dest_proc destination processor
  * @param str_size  minimal string size
  */
-void proc_com_send_work(nsr_stack_t *stack, const int dest_proc, const int str_size);
+void proc_com_send_work(nsr_stack_t **stack, const int dest_proc, const int str_size);
 
 /**
  * Ask 0 processor for work
@@ -52,7 +52,7 @@ void proc_com_send_work(nsr_stack_t *stack, const int dest_proc, const int str_s
  * @param tmp_str from char_operatioons.h
  */
 void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
-        char *tmp_str, int *token);
+        char *tmp_str, int *token, nsr_result_t *result);
 
 /**
  * Receive a token a send yours, to the next processor
@@ -61,6 +61,12 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
  */
 void proc_com_check_idle_state(const int my_rank, const int proc_num);
 
+/**
+ * Check if message is received.
+ * @param stack   
+ * @param counter delay_counter
+ * @param str_len min length of input strings (+1 for \0)
+ */
 void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len);
 
 #endif
