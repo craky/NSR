@@ -35,7 +35,7 @@ int acz_ahd(const int loc_counter, const int proc_sum);
  * Will finish all processes except the process 0
  * Needs to be after MPI_Init() and before MPI_Finalize()
  */
-void proc_com_finish_processes(const int str_len);
+void proc_com_finish_processes(const int str_len, nsr_result_t *result,const nsr_strings_t *strings);
 
 /**
  * Sends work to the destination processor.
@@ -52,7 +52,7 @@ void proc_com_send_work(nsr_stack_t **stack, const int dest_proc, const int str_
  * @param tmp_str from char_operatioons.h
  */
 void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
-        char *tmp_str, int *token, nsr_result_t *result);
+        int *token, nsr_result_t *result);
 
 /**
  * Receive a token a send yours, to the next processor
