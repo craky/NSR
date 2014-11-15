@@ -98,8 +98,11 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
            prob_counter++;
            
            if((prob_counter%CHECK_MSG_AMOUNT) == 0)
+           {
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, 
                                 &status);
+                prob_counter = 0;
+           }
            
            if(flag)
            {
@@ -114,14 +117,18 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
                                                 return;
                    case MSG_WORK_NOWORK: /* What to do if there is no work */
                        MPI_Recv(NULL,0,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+                       /* lets send request again */
+                       wait_for_work = 0;
                        break;
                    
-                   case MSG_TOKEN:              MPI_Recv(&buffer,1,MPI_INT, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
-                                                 /* TODO now it is always sending a white token */
-                                                 buffer[0] = WHITE;                   
-                                                 MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
-                                                
-                                                break;
+                   case MSG_TOKEN:          
+                       MPI_Recv(&buffer,1,MPI_INT, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+                       if(buffer[0] == BLACK)
+                           buffer[0] = BLACK; /* TODO buffer is already black */
+                       else
+                        buffer[0] = WHITE;
+                       MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);                                       
+                       break;
                                                 
                    case MSG_FINISH:
                        memcpy(buffer,result->_string,strings->_min_string_length+1);
@@ -135,6 +142,7 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
                    
                }
            }
+           flag = 0;
        }
 }
 
@@ -164,17 +172,14 @@ void proc_com_check_idle_state(const int my_rank, const int proc_num)
                     case MSG_WORK_REQUEST:      
                         MPI_Recv(NULL,0,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
                         MPI_Send(NULL,0,MPI_CHAR,status.MPI_SOURCE,MSG_WORK_NOWORK,MPI_COMM_WORLD);
-                        return; 
+                        break; 
                         
                     case MSG_TOKEN:             
                                MPI_Recv(&buffer,1,MPI_INT, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
                                if(buffer[0] == WHITE)
                                    return;
-                               else
-                                   printf("I got a black token.\n");
-                               token = WHITE;
                                /* send token to the next processor */
-                               buffer[0] = token;
+                               buffer[0] = WHITE;
                                MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
                                break;
                                
@@ -185,7 +190,8 @@ void proc_com_check_idle_state(const int my_rank, const int proc_num)
     }
 }
 
-void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len)
+void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len,
+        int my_rank, int proc_num)
 {
     int flag = 0;
     char buffer[BUFFER_LENGTH];
@@ -206,19 +212,21 @@ void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len)
                 /* Recieve the message */
                 MPI_Recv(NULL,0,MPI_CHAR,MPI_ANY_SOURCE,MPI_ANY_TAG,
                         MPI_COMM_WORLD,&status);
+                /* Check if exist some work */
+                if(nsr_stack_empty(stack))
+                {
+                    MPI_Send(NULL,0,MPI_CHAR,status.MPI_SOURCE,MSG_WORK_NOWORK,MPI_COMM_WORLD);
+                    break;
+                }
                 /* Send work to status.MPI_SOURCE */
                 proc_com_send_work(&stack,status.MPI_SOURCE,str_len);
                 break;
                 
             case MSG_TOKEN:
                 MPI_Recv(&buffer,1,MPI_INT, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
-                if(buffer[0] == WHITE)
-                    printf("Ou a white Token appeared.\n");
-                break;
-            case MSG_FINISH: 
-                printf("Ou the end.\n");
-                MPI_Finalize();
-                exit(0);
+                /* In this state I'm bussy */
+                buffer[0] = BLACK;
+                MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
                 break;
                 
             default: printf("Unknown status.MPI_TAG for me.\n");

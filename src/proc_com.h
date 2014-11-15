@@ -66,7 +66,10 @@ void proc_com_check_idle_state(const int my_rank, const int proc_num);
  * @param stack   
  * @param counter delay_counter
  * @param str_len min length of input strings (+1 for \0)
+ * @param my_rank
+ * @paran proc_num
  */
-void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len);
+void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len, 
+        int my_rank, int proc_num);
 
 #endif

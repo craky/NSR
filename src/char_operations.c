@@ -88,7 +88,11 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
        /* Do not add to stack */
        if(elem._idx+1 == strings->_min_string_length)
        {
-           /* check distances */
+           if(my_rank == 1)
+           {
+               printf("%s\n",tmp_str);
+           }
+         /* check distances */
          tmp_dist = get_maximum_dist(strings, tmp_str);
          if (tmp_dist < min_dist)
          {
@@ -111,7 +115,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
        }
 
        proc_com_check_flag(&stack, delay_counter++, 
-               strings->_min_string_length +1);
+               strings->_min_string_length +1,my_rank,proc_num);
    }
    
    if(my_rank != 0)
