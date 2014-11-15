@@ -88,18 +88,15 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
        /* Do not add to stack */
        if(elem._idx+1 == strings->_min_string_length)
        {
-           if(my_rank == 1)
-           {
-               printf("%s\n",tmp_str);
-           }
+           
          /* check distances */
-         tmp_dist = get_maximum_dist(strings, tmp_str);
+         tmp_dist = get_maximum_dist(strings, elem._string);
          if (tmp_dist < min_dist)
          {
             min_dist = tmp_dist;
-            memcpy(result->_string, tmp_str, strings->_min_string_length + 1);
+            memcpy(result->_string, elem._string, strings->_min_string_length + 1);
             result->_max_distance = tmp_dist;
-            set_distances(strings, tmp_str, result);
+            set_distances(strings, elem._string, result);
          }
          if(my_rank != 0 && nsr_stack_empty(&stack))
             proc_com_ask_for_work(&stack,strings,tmp_str,&token, result);
