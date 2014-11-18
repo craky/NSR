@@ -6,8 +6,12 @@
 #include <string.h>
 #include <limits.h>
 
-int acz_ahd(const int loc_counter, const int proc_sum)
+int acz_ahd(const int my_rank, const int loc_counter, const int proc_sum)
 {    
+    /* processor should not ask itself to be a work donor */
+    if(my_rank == ((loc_counter+1)%proc_sum))
+        return (loc_counter+2)%proc_sum;
+        
     return (loc_counter+1)%proc_sum;
 }
 
@@ -69,27 +73,37 @@ void proc_com_finish_processes(const int str_len, nsr_result_t *result,const nsr
 
 void proc_com_send_work(nsr_stack_t **stack, const int dest_proc, const int str_size)
 {
-    char *buffer = (char*) malloc((str_size+1)*sizeof(char));
-
-    nsr_stack_elem_t elem = nsr_stack_pop_bottom(*stack);
-    memcpy(buffer,elem._string,str_size);
-    buffer[str_size] = elem._idx;
- 
-    /* create message */
-    MPI_Send(buffer,str_size+1,MPI_CHAR,dest_proc,MSG_WORK_SENT,MPI_COMM_WORLD);
+    char *buffer = (char*) malloc((BUFFER_LENGTH)*sizeof(char));
+    int i = 0,buff_offset = 0;
+    nsr_stack_elem_t elem;
     
+    /* how much elems will be send */
+    buffer[0] = nsr_stack_get_size(*stack)/2;
+    buff_offset = str_size+1;
+   
+    
+    for( i = 0; i < buffer[0];i++)
+    {
+        elem = nsr_stack_pop_bottom(*stack);
+
+        memcpy(buffer+(i*buff_offset+1),elem._string,str_size);
+        buffer[(i+1)*buff_offset] = elem._idx;      
+    }
+     /* create message */
+        MPI_Send(buffer,BUFFER_LENGTH,MPI_CHAR,dest_proc,MSG_WORK_SENT,MPI_COMM_WORLD);
+        
     free(buffer);
 }
 
-void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
-        int *token, nsr_result_t *result)
+void proc_com_ask_for_work(nsr_stack_t *stack,const int donor, 
+        const nsr_strings_t *strings, int *token, nsr_result_t *result)
 {
     int wait_for_work = 0, position = 0, flag = 0, rec_idx = -1,prob_counter =0;
-    int my_rank, proc_num;
+    int my_rank, proc_num, elem_sum = 0, buff_offset = 1, tmp_donor = donor;
     MPI_Status status;
     char buffer[BUFFER_LENGTH];
     char *rec_string = (char *) malloc((strings->_min_string_length+1)*sizeof(char));
-    token = BLACK;
+   
     
    /* find out process rank */
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -100,8 +114,8 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
     while(1)
        {
            if(!wait_for_work)
-           {
-                MPI_Send(buffer,position,MPI_CHAR,0,MSG_WORK_REQUEST,MPI_COMM_WORLD);
+           {    /* there can be troubles with donor */
+                MPI_Send(buffer,position,MPI_CHAR,tmp_donor,MSG_WORK_REQUEST,MPI_COMM_WORLD);
                 wait_for_work = 1;
            }
            
@@ -118,16 +132,29 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
            {
                switch(status.MPI_TAG)
                {
+                   case MSG_WORK_REQUEST:
+                       MPI_Recv(NULL,0,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+                       MPI_Send(NULL,0,MPI_CHAR,status.MPI_SOURCE,MSG_WORK_NOWORK,MPI_COMM_WORLD);
+                       break;
+                       
                    case MSG_WORK_SENT:          
-                       MPI_Recv(&buffer,strings->_min_string_length+1+1,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
-                       memcpy(rec_string,buffer,strings->_min_string_length+1);
-                       rec_idx = buffer[strings->_min_string_length+1];
-                       nsr_stack_push(stack,rec_idx,rec_string,strings->_min_string_length);
-                                                return;
+                       MPI_Recv(&buffer,BUFFER_LENGTH,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+                       elem_sum = buffer[0];
+                       buff_offset = strings->_min_string_length + 2;
+                               
+                       for(int i = 0; i < elem_sum; i++)
+                       {
+                        memcpy(rec_string,buffer+(i*buff_offset+1),strings->_min_string_length+1);
+                        rec_idx = buffer[(i+1)*buff_offset];
+                        nsr_stack_push(stack,rec_idx,rec_string,strings->_min_string_length);
+                       }
+                       return;
+                       
                    case MSG_WORK_NOWORK: /* What to do if there is no work */
                        MPI_Recv(NULL,0,MPI_CHAR, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
                        /* lets send request again */
                        wait_for_work = 0;
+                       tmp_donor = acz_ahd(my_rank,tmp_donor,proc_num);
                        break;
                    
                    case MSG_TOKEN:          
@@ -135,8 +162,9 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
                        if(buffer[0] == BLACK)
                            buffer[0] = BLACK; /* TODO buffer is already black */
                        else
-                        buffer[0] = WHITE;
-                       MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);                                       
+                        buffer[0] = *token;
+                       MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
+                       *token = WHITE;
                        break;
                                                 
                    case MSG_FINISH:
@@ -151,7 +179,7 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
                        exit(0);
                        break;
                    
-                   default:printf("Error: unknowm MPI_TAG.\n");
+                   default:printf("Error: unknowm MPI_TAG [%d].\n",status.MPI_TAG);
                    
                }
            }
@@ -164,7 +192,6 @@ void proc_com_check_idle_state(const int my_rank, const int proc_num)
     int iprobe_counter = 0, flag = 0, token = WHITE;
     MPI_Status status;
     char buffer[BUFFER_LENGTH];
-    
     
     /* send token to the next processor */
     buffer[0] = token;
@@ -203,7 +230,7 @@ void proc_com_check_idle_state(const int my_rank, const int proc_num)
     }
 }
 
-void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len,
+void proc_com_check_flag(nsr_stack_t *stack, int *token, int counter, const int str_len,
         int my_rank, int proc_num)
 {
     int flag = 0;
@@ -226,12 +253,14 @@ void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len,
                 MPI_Recv(NULL,0,MPI_CHAR,MPI_ANY_SOURCE,MPI_ANY_TAG,
                         MPI_COMM_WORLD,&status);
                 /* Check if exist some work */
-                if(nsr_stack_empty(stack))
+                if(nsr_stack_empty(stack) || nsr_stack_get_size(stack) == 1)
                 {
                     MPI_Send(NULL,0,MPI_CHAR,status.MPI_SOURCE,MSG_WORK_NOWORK,MPI_COMM_WORLD);
                     break;
                 }
                 /* Send work to status.MPI_SOURCE */
+                if(status.MPI_SOURCE < my_rank)
+                    *token = BLACK;
                 proc_com_send_work(&stack,status.MPI_SOURCE,str_len);
                 break;
                 
@@ -242,7 +271,7 @@ void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len,
                 MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
                 break;
                 
-            default: printf("Unknown status.MPI_TAG for me.\n");
+            default: printf("[%d]: Unknown status.MPI_TAG for me. Tag is %d from source %d\n",my_rank, status.MPI_TAG, status.MPI_SOURCE);
         }
     }
 }

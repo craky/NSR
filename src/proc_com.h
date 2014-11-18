@@ -6,7 +6,7 @@
 #include "nsr_string.h"
 
 #define CHECK_MSG_AMOUNT  100
-#define BUFFER_LENGTH 100
+#define BUFFER_LENGTH 1000
 
 /* MPI message tags */
 #define MSG_WORK_REQUEST 1000
@@ -25,11 +25,12 @@
  * Name of function is based on Czech language for consistency with source:
  * https://edux.fit.cvut.cz/courses/MI-PPR.2/labs/prohledavani_do_hloubky
  * 
- * @param loc_counter
+ * @param my_rank 
+ * @param loc_counter which is next donor
  * @param proc_sum
  * @return Next donor id
  */
-int acz_ahd(const int loc_counter, const int proc_sum);
+int acz_ahd(const int my_rank, const int loc_counter, const int proc_sum);
 
 /**
  * Will finish all processes except the process 0
@@ -51,8 +52,8 @@ void proc_com_send_work(nsr_stack_t **stack, const int dest_proc, const int str_
  * @param strings
  * @param tmp_str from char_operatioons.h
  */
-void proc_com_ask_for_work(nsr_stack_t *stack,const nsr_strings_t *strings,
-        int *token, nsr_result_t *result);
+void proc_com_ask_for_work(nsr_stack_t *stack,const int donor, 
+        const nsr_strings_t *strings, int *token, nsr_result_t *result);
 
 /**
  * Receive a token a send yours, to the next processor
@@ -64,12 +65,13 @@ void proc_com_check_idle_state(const int my_rank, const int proc_num);
 /**
  * Check if message is received.
  * @param stack   
+ * @token token for modified ADUV 
  * @param counter delay_counter
  * @param str_len min length of input strings (+1 for \0)
  * @param my_rank
  * @paran proc_num
  */
-void proc_com_check_flag(nsr_stack_t *stack, int counter, const int str_len, 
+void proc_com_check_flag(nsr_stack_t *stack, int *token, int counter, const int str_len, 
         int my_rank, int proc_num);
 
 #endif

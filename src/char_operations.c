@@ -53,13 +53,17 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    nsr_stack_elem_t elem;
    nsr_result_t *result;
    int tmp_dist, min_dist = INT_MAX; 
-   int my_rank = 0,i = 0, token = BLACK, proc_num = 0, delay_counter = 0;
+   int my_rank = 0,i = 0, token = WHITE, proc_num = 0, delay_counter = 0;
+   int donor = 0;
    
     /* find out process rank */
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    
    /* find out number of processes */
    MPI_Comm_size(MPI_COMM_WORLD, &proc_num);
+   
+   /* init donor and local counter */
+   donor = (my_rank+1)%proc_num;
    
    /* Stack code */
    result = (nsr_result_t *) malloc(sizeof(nsr_result_t));
@@ -77,9 +81,11 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
 
    /* All processes (except 0) are waiting for work from proc. 0 */
    if(my_rank != 0)
-      proc_com_ask_for_work(&stack,strings,&token,result);
-       
- 
+   {
+      proc_com_ask_for_work(&stack,donor,strings,&token,result);
+      donor = acz_ahd(my_rank,donor,proc_num);
+   }
+   
   
    while(!nsr_stack_empty(&stack))
    {
@@ -98,7 +104,10 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
             result->_max_distance = tmp_dist;
          }
          if(my_rank != 0 && nsr_stack_empty(&stack))
-            proc_com_ask_for_work(&stack,strings,&token, result);
+         {
+            proc_com_ask_for_work(&stack,donor,strings,&token, result);
+            donor = acz_ahd(my_rank,donor,proc_num);
+         }
          /* get next elem from stack */
          continue;
        }
@@ -110,7 +119,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
            nsr_stack_push(&stack,elem._idx+1,tmp_str,strings->_min_string_length);
        }
 
-       proc_com_check_flag(&stack, delay_counter++, 
+       proc_com_check_flag(&stack, &token,delay_counter++, 
                strings->_min_string_length +1,my_rank,proc_num);
    }
    
@@ -126,7 +135,6 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    
    if(my_rank == 0)
    {
-       printf("For now is best %s \n",result->_string);
        proc_com_check_idle_state(my_rank,proc_num);
        proc_com_finish_processes(strings->_min_string_length,result,strings);
        set_distances(strings, result->_string, result);

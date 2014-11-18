@@ -2,7 +2,6 @@
 #define __CHAR_OPERAIONS_H__
 #include "nsr_string.h"
 
-#define BUFFER_LENGTH 100
 
 /* MPI message tags */
 #define MSG_WORK_REQUEST 1000

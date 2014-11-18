@@ -68,4 +68,9 @@ nsr_stack_elem_t nsr_stack_pop_bottom(nsr_stack_t *stack);
  */
 void nsr_stack_print(const nsr_stack_t *stack);
 
+/**
+ * returns stack size 
+ */
+int nsr_stack_get_size(const nsr_stack_t *stack);
+
 #endif /* __NSR_STACK_H__ */

@@ -74,3 +74,8 @@ void nsr_stack_print(const nsr_stack_t *stack)
       printf("idx: %d string: %s;\n", stack->_elements[i]._idx,
               stack->_elements[i]._string);
 }
+
+int nsr_stack_get_size(const nsr_stack_t *stack)
+{
+    return (stack->_size - stack->_bottom);
+}
