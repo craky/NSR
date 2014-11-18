@@ -162,7 +162,7 @@ void proc_com_ask_for_work(nsr_stack_t *stack,const int donor,
                        if(buffer[0] == BLACK)
                            buffer[0] = BLACK; /* TODO buffer is already black */
                        else
-                        buffer[0] = *token;
+                        buffer[0] = *token; 
                        MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
                        *token = WHITE;
                        break;
