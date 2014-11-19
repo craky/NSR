@@ -6,7 +6,7 @@
 #include "nsr_string.h"
 
 #define CHECK_MSG_AMOUNT  100
-#define BUFFER_LENGTH 1000
+#define BUFFER_LENGTH 850
 
 /* MPI message tags */
 #define MSG_WORK_REQUEST 1000
@@ -47,13 +47,22 @@ void proc_com_finish_processes(const int str_len, nsr_result_t *result,const nsr
 void proc_com_send_work(nsr_stack_t **stack, const int dest_proc, const int str_size);
 
 /**
- * Ask 0 processor for work
+ * Ask for work. This is ONLY for processor 0.
+ * @param stack
+ * @param donor
+ * @return 1 - got a work, 0 - no work for proc. 0
+ */
+int proc_com_zero_ask_for_work(nsr_stack_t *stack, 
+       const nsr_strings_t *strings, const int donor);
+
+/**
+ * Ask donor processor for work
  * @param stack 
  * @param strings
  * @param tmp_str from char_operatioons.h
  */
 void proc_com_ask_for_work(nsr_stack_t *stack,const int donor, 
-        const nsr_strings_t *strings, int *token, nsr_result_t *result);
+        const nsr_strings_t *strings, int *token, nsr_result_t *result, int debug_counter);
 
 /**
  * Receive a token a send yours, to the next processor

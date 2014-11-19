@@ -55,6 +55,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    int tmp_dist, min_dist = INT_MAX; 
    int my_rank = 0,i = 0, token = WHITE, proc_num = 0, delay_counter = 0;
    int donor = 0;
+   int debug_counter = 0;
    
     /* find out process rank */
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -82,7 +83,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    /* All processes (except 0) are waiting for work from proc. 0 */
    if(my_rank != 0)
    {
-      proc_com_ask_for_work(&stack,donor,strings,&token,result);
+      proc_com_ask_for_work(&stack,donor,strings,&token,result,debug_counter);
       donor = acz_ahd(my_rank,donor,proc_num);
    }
    
@@ -94,7 +95,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
        /* Do not add to stack */
        if(elem._idx+1 == strings->_min_string_length)
        {
-           
+           debug_counter++;
          /* check distances */
          tmp_dist = get_maximum_dist(strings, elem._string);
          if (tmp_dist < min_dist)
@@ -105,8 +106,15 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
          }
          if(my_rank != 0 && nsr_stack_empty(&stack))
          {
-            proc_com_ask_for_work(&stack,donor,strings,&token, result);
+            proc_com_ask_for_work(&stack,donor,strings,&token, result,debug_counter);
             donor = acz_ahd(my_rank,donor,proc_num);
+         }
+         
+         if(my_rank == 0 && nsr_stack_empty(&stack))
+         {
+             for(i = 0; i < proc_num; i++)
+                if(proc_com_zero_ask_for_work(&stack,strings,i))
+                    continue;
          }
          /* get next elem from stack */
          continue;
@@ -132,7 +140,7 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    }
    /* Sorry, but i needed to delete these free(tmp_string) but dont know why */
    nsr_stack_destroy(&stack);
-   
+   printf("[%d] I have done %d things.\n",my_rank,debug_counter);
    if(my_rank == 0)
    {
        proc_com_check_idle_state(my_rank,proc_num);
