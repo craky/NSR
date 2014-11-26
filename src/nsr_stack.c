@@ -30,11 +30,13 @@ void nsr_stack_push(nsr_stack_t *stack, int idx, char string[],
       stack->_max_size <<= 1;     
       elements_new = (nsr_stack_elem_t *) malloc(
          stack->_max_size * sizeof(nsr_stack_elem_t));
-      memcpy(elements_new, stack->_elements, stack->_size *
-         sizeof(nsr_stack_elem_t));
-      
+      //memcpy(elements_new, stack->_elements, (stack->_size) *
+        // sizeof(nsr_stack_elem_t));
+      nsr_stack_offsetcpy(elements_new,stack->_elements,stack->_bottom,stack->_size-stack->_bottom,string_size);
       free(stack->_elements);
       stack->_elements = elements_new;
+      stack->_size -= stack->_bottom;
+      stack->_bottom = 0;
    }
 
 
@@ -79,4 +81,20 @@ void nsr_stack_print(const nsr_stack_t *stack)
 int nsr_stack_get_size(const nsr_stack_t *stack)
 {
     return (stack->_size - stack->_bottom);
+}
+
+void  nsr_stack_offsetcpy(nsr_stack_elem_t * destination, 
+        nsr_stack_elem_t * source,const int start_idx, const int size,
+        const int string_size)
+{
+    int i = 0, offset = start_idx;
+    
+    for(i = 0; i < size; i++)
+    {
+        destination[i]._idx = source[offset]._idx;
+        destination[i]._string = (char *) malloc(sizeof(char)*string_size);
+        memcpy(destination[i]._string,source[offset]._string,string_size);
+        offset++;
+    }
+    
 }

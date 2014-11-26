@@ -350,8 +350,8 @@ void proc_com_check_flag(nsr_stack_t *stack, int *token, int counter, const int 
                 //MPI_Send(buffer,1,MPI_INT,(my_rank+1)%proc_num,MSG_TOKEN,MPI_COMM_WORLD);
                 break;
                 
-            default: printf("[%d]: Unknown status.MPI_TAG for me. Tag is %d from source %d\n",my_rank, status.MPI_TAG, status.MPI_SOURCE);
-            //default: break;
+            //default: printf("[%d]: Unknown status.MPI_TAG for me. Tag is %d from source %d\n",my_rank, status.MPI_TAG, status.MPI_SOURCE);
+            default: break;
         }
     }
 }

@@ -73,4 +73,7 @@ void nsr_stack_print(const nsr_stack_t *stack);
  */
 int nsr_stack_get_size(const nsr_stack_t *stack);
 
+void nsr_stack_offsetcpy(nsr_stack_elem_t * destination, 
+        nsr_stack_elem_t * source,const int start_idx, const int size,
+        const int string_size);
 #endif /* __NSR_STACK_H__ */
