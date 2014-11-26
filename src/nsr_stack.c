@@ -22,7 +22,7 @@ void nsr_stack_push(nsr_stack_t *stack, int idx, char string[],
         const int string_size)
 {
    nsr_stack_elem_t *elements_new;
-
+   int i = 0;
 
    if (stack->_size == stack->_max_size)
    {
@@ -33,6 +33,8 @@ void nsr_stack_push(nsr_stack_t *stack, int idx, char string[],
       //memcpy(elements_new, stack->_elements, (stack->_size) *
         // sizeof(nsr_stack_elem_t));
       nsr_stack_offsetcpy(elements_new,stack->_elements,stack->_bottom,stack->_size-stack->_bottom,string_size);
+      for(i = 0; i < stack->_bottom;i++)
+        free(stack->_elements[i]._string);
       free(stack->_elements);
       stack->_elements = elements_new;
       stack->_size -= stack->_bottom;
@@ -49,6 +51,10 @@ void nsr_stack_push(nsr_stack_t *stack, int idx, char string[],
 
 void nsr_stack_destroy(nsr_stack_t *stack)
 {
+    int i = 0;
+    
+    for(i = stack->_bottom; i < stack->_size;i++)
+        free(stack->_elements[i]._string);
    free(stack->_elements);
 }
 
