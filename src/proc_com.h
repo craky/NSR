@@ -19,6 +19,8 @@
 #define BLACK  0
 #define WHITE 1
 
+#define TOKEN_NOT_REC -1
+
 /**
  * 
  * Algorithms for donor search
@@ -62,7 +64,8 @@ int proc_com_zero_ask_for_work(nsr_stack_t *stack,
  * @param tmp_str from char_operatioons.h
  */
 void proc_com_ask_for_work(nsr_stack_t *stack,const int donor, 
-        const nsr_strings_t *strings, int *token, nsr_result_t *result, int debug_counter);
+        const nsr_strings_t *strings, int *token, nsr_result_t *result, 
+        int debug_counter, const int token_rec);
 
 /**
  * Receive a token a send yours, to the next processor
@@ -81,6 +84,6 @@ void proc_com_check_idle_state(const int my_rank, const int proc_num);
  * @paran proc_num
  */
 void proc_com_check_flag(nsr_stack_t *stack, int *token, int counter, const int str_len, 
-        int my_rank, int proc_num);
+        int my_rank, int proc_num, int *token_rec);
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef __NSR_STACK_H__
 #define __NSR_STACK_H__
 
-#define NSR_STACK_INIT_SIZE 8
+#define NSR_STACK_INIT_SIZE 1200
 
 typedef struct nsr_stack_elem
 {

@@ -23,19 +23,20 @@ void nsr_stack_push(nsr_stack_t *stack, int idx, char string[],
 {
    nsr_stack_elem_t *elements_new;
 
+
    if (stack->_size == stack->_max_size)
    {
-       /* TODO not sure if working with string */    
-      stack->_max_size <<= 1;
+ 
+      stack->_max_size <<= 1;     
       elements_new = (nsr_stack_elem_t *) malloc(
          stack->_max_size * sizeof(nsr_stack_elem_t));
       memcpy(elements_new, stack->_elements, stack->_size *
          sizeof(nsr_stack_elem_t));
       
-      /* TODO: need to do it right*/
-      //free(stack->_elements);
+      free(stack->_elements);
       stack->_elements = elements_new;
    }
+
 
    stack->_elements[stack->_size]._idx = idx;
    stack->_elements[stack->_size]._string = (char *) malloc(
@@ -50,20 +51,20 @@ void nsr_stack_destroy(nsr_stack_t *stack)
 }
 
 nsr_stack_elem_t nsr_stack_pop(nsr_stack_t *stack)
-{
+{  
    return stack->_elements[--stack->_size];
 }
 
 nsr_stack_elem_t nsr_stack_pop_bottom(nsr_stack_t *stack)
 {
+    nsr_stack_elem_t elem = stack->_elements[stack->_bottom];
     if(nsr_stack_empty(stack))
     {
         printf("Trying to get elem from empty stack.\n");
     }
-    
-    //stack->_size--;
+
     stack->_bottom++;
-    return stack->_elements[stack->_bottom-1];
+    return elem;
 }
 
 void nsr_stack_print(const nsr_stack_t *stack)

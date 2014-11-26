@@ -55,7 +55,8 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    int tmp_dist, min_dist = INT_MAX; 
    int my_rank = 0,i = 0, token = WHITE, proc_num = 0, delay_counter = 0;
    int donor = 0;
-   int debug_counter = 0;
+   int debug_counter = 0, token_rec = TOKEN_NOT_REC;
+   double start_time = 0, end_time = 0;
    
     /* find out process rank */
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -77,13 +78,19 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
    
    /* Only the first process will start calculation */
    if(my_rank == 0)
+   {
+       MPI_Barrier(MPI_COMM_WORLD);
+       start_time = MPI_Wtime();
         nsr_stack_push(&stack, -1, tmp_str, strings->_min_string_length);
+   }
    
 
    /* All processes (except 0) are waiting for work from proc. 0 */
    if(my_rank != 0)
    {
-      proc_com_ask_for_work(&stack,donor,strings,&token,result,debug_counter);
+      MPI_Barrier(MPI_COMM_WORLD);
+      proc_com_ask_for_work(&stack,donor,strings,&token,result,debug_counter,
+              token_rec);
       donor = acz_ahd(my_rank,donor,proc_num);
    }
    
@@ -106,7 +113,9 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
          }
          if(my_rank != 0 && nsr_stack_empty(&stack))
          {
-            proc_com_ask_for_work(&stack,donor,strings,&token, result,debug_counter);
+            proc_com_ask_for_work(&stack,donor,strings,&token, result,
+                    debug_counter,token_rec);
+            token_rec = TOKEN_NOT_REC;
             donor = acz_ahd(my_rank,donor,proc_num);
          }
          
@@ -126,9 +135,9 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
            tmp_str[elem._idx+1] = 'z' - i;
            nsr_stack_push(&stack,elem._idx+1,tmp_str,strings->_min_string_length);
        }
-
+       
        proc_com_check_flag(&stack, &token,delay_counter++, 
-               strings->_min_string_length +1,my_rank,proc_num);
+               strings->_min_string_length +1,my_rank,proc_num,&token_rec);
    }
    
    if(my_rank != 0)
@@ -148,6 +157,10 @@ nsr_result_t *nsr_solve(const nsr_strings_t *strings)
        set_distances(strings, result->_string, result);
    }
    free(rec_string);
+   
+   end_time = MPI_Wtime();
+   printf("Start_time %f, end_time %f.\n",start_time, end_time);
+   printf("Result time is %f.\n",end_time-start_time);
     return result;
 }
 
